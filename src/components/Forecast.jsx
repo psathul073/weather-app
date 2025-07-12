@@ -2,6 +2,7 @@ import React from 'react'
 
 const Forecast = ({ forecast, tempSymbol }) => {
     return (
+        // Forecast section.
         <div className="forecast-container">
 
             <h2 className="text-sm font-semibold py-3">5-Day Forecast</h2>
@@ -23,6 +24,7 @@ const Forecast = ({ forecast, tempSymbol }) => {
                         ))
                         :
                         [1, 2, 3, 4, 5].map((key) => (
+                            // Fallback.
                             <div
                                 key={key}
                                 className=" w-full bg-white dark:bg-zinc-900 rounded-lg p-2 text-center snap-center shadow"
@@ -33,6 +35,7 @@ const Forecast = ({ forecast, tempSymbol }) => {
                             </div>
                         ))
                 }
+
             </div>
 
         </div>

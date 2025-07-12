@@ -1,4 +1,5 @@
 
+// For clean expired data.
 export const cleanExpiredCache = (cache, expiryDuration) => {
     const now = new Date();
     const cleanedCache = {};

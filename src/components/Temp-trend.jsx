@@ -12,6 +12,8 @@ const TempTrend = ({ forecast }) => {
         <div className="tt-container h-[240px] pt-3 px-4 my-4 rounded-lg bg-white dark:bg-zinc-900 shadow flex flex-col justify-between">
             <h3 className="text-sm font-semibold mb-2">Temperature Trend</h3>
 
+            {/* 5 day temp chart container */}
+
             <ResponsiveContainer width="100%" height="100%"  >
                 <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} >
                     <defs>

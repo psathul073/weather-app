@@ -22,19 +22,23 @@ const Settings = ({ setSettingsMenu, unit, setUnit }) => {
   }, []);
 
   return (
+    // Settings
     <div className='overlay z-10 absolute top-0 left-0 right-0 p-2 sm:hidden flex justify-center '>
 
+      {/* Settings model */}
       <div ref={settingsRef} className='settings-menu relative w-xs  h-[277px] top-20 py-3 px-4 rounded-2xl bg-zinc-100 dark:bg-zinc-900 dark:text-white shadow-2xs '>
 
         <h2 className='title w-full inline-flex items-center justify-between text-[1.1em] pb-2 '>Settings <div onClick={() => setSettingsMenu(false)} className=' hover:text-red-500 active:text-red-500 cursor-pointer'><Icons name={'X'} /></div></h2>
 
         <ul className='options border-t border-zinc-400/40'>
 
+          {/* Unit selection */}
           <li className='w-full inline-flex justify-between items-center my-2 '>
             Units
             <button onClick={() => setUnit(unit === "metric" ? "imperial" : "metric")} className='inline-flex items-center justify-center gap-2 p-1.5 text-zinc-600 textHover'><Icons name={unit === "metric" ? "F" : "C"} /> {unit === "metric" ? "Fahrenheit" : "Celsius"} </button>
           </li>
 
+          {/* Theme selection */}
           <li className='w-full inline-flex justify-between items-center my-2 border-t border-dotted border-zinc-500/40'>
             Theme
             <ThemeDropdown isMobile={isMobile} />

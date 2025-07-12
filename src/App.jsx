@@ -18,7 +18,7 @@ function App() {
     return savedData ? JSON.parse(savedData) : {};
   });
   const EXPIRY_DURATION = 30 * 60 * 1000; // 30 minutes.
-  const tempSymbol = unit === "metric" ? "°C" : "°F";
+  const tempSymbol = unit === "metric" ? "°C" : "°F"; // Units.
 
 
   // Set weather cache data on load.
@@ -115,6 +115,7 @@ function App() {
     });
   };
 
+  // Clean expired data.
   useEffect(() => {
     // Clean cache once on load...
     const cleaned = cleanExpiredCache(cache, EXPIRY_DURATION);
@@ -124,8 +125,9 @@ function App() {
     }
   }, []);
 
+  // Fetch current weather on load...
   useEffect(() => {
-    // Run once on load...
+    // Run once on load.
     if (!city) {
       fetchGeoWeather();
     }
