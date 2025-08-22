@@ -1,26 +1,16 @@
-import { useRef } from 'react';
 import SearchBox from './Search-box';
 
-const PrimarySection = ({ weather, fetchWeather, city, setCity, tempSymbol, cityImg, unit, setUnit, fetchGeoWeather }) => {
+const PrimarySection = ({ weather, fetchWeather, city, setCity, tempSymbol, cityImg, unit, setUnit, fetchGeoWeather, loading }) => {
 
-  const debounceRef = useRef(null);
   let date = new Date();
   let day = date.toLocaleString('en-us', { weekday: 'long' });
 
-  // For city search.
-  const handleInputChange = (value) => {
-    setCity(value);
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      fetchWeather(value);
-    }, 500);
-  };
 
   return (
 
     <div className='container-1 relative p-6 w-full h-full0 sm:w-sm  max-sm:rounded-t-3xl sm:rounded-l-3xl bg-white dark:bg-black'>
 
-      <SearchBox handleInputChange={handleInputChange} city={city} unit={unit} setUnit={setUnit} fetchGeoWeather={fetchGeoWeather} />
+      <SearchBox setCity={setCity} city={city} unit={unit} setUnit={setUnit} fetchWeather={fetchWeather} fetchGeoWeather={fetchGeoWeather} loading={loading} />
 
       {/* dynamic Icons and time*/}
       <div className='temp flex flex-col items-center dark:text-white'>
