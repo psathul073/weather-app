@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import PrimarySection from "./components/Primary-section";
 import SecondarySection from "./components/Secondary-section";
-import { FetchAirPollutionData, FetchForecastData, FetchWeatherData } from "./api/weather-api";
-import { FetchCityImg } from './api/city-image-api';
-import { cleanExpiredCache } from './utils/cacheHelpers';
+import {
+  FetchAirPollutionData,
+  FetchForecastData,
+  FetchWeatherData,
+} from "./api/weather-api";
+import { FetchCityImg } from "./api/city-image-api";
+import { cleanExpiredCache } from "./utils/cacheHelpers";
+import PopupMsg from "./components/PopupMsg";
 
 function App() {
-
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
@@ -14,6 +18,7 @@ function App() {
   const [unit, setUnit] = useState("metric");
   const [cityImg, setCityImg] = useState(null);
   const [loading, setLoading] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const [cache, setCache] = useState(() => {
     const savedData = localStorage.getItem("weatherCache");
@@ -21,7 +26,6 @@ function App() {
   });
   const EXPIRY_DURATION = 30 * 60 * 1000; // 30 minutes.
   const tempSymbol = unit === "metric" ? "°C" : "°F"; // Units.
-
 
   // Set weather cache data on load.
   useEffect(() => {
@@ -33,7 +37,7 @@ function App() {
     try {
       const res = await FetchAirPollutionData(lat, lon);
       // console.log(res, '--Air quality--');
-      setAirQuality(res.list[0].main.aqi)
+      setAirQuality(res.list[0].main.aqi);
     } catch {
       setAirQuality(null);
     }
@@ -41,7 +45,6 @@ function App() {
 
   // Fetch weather data.
   const fetchWeather = async (cityName) => {
-
     setLoading(true);
     if (!cityName) return;
 
@@ -61,7 +64,6 @@ function App() {
         fetchExtraDetails(weatherData.coord.lat, weatherData.coord.lon);
         setLoading(false);
         return;
-
       } else {
         // Remove expire data.
         setCache((prev) => {
@@ -70,14 +72,20 @@ function App() {
           return updated;
         });
       }
-    };
+    }
 
     try {
-      const weatherRes = await FetchWeatherData(cityName.toLowerCase().trim(), unit);
-      const forecastRes = await FetchForecastData(cityName.toLowerCase().trim(), unit);
+      const weatherRes = await FetchWeatherData(
+        cityName.toLowerCase().trim(),
+        unit
+      );
+      const forecastRes = await FetchForecastData(
+        cityName.toLowerCase().trim(),
+        unit
+      );
       const cityImgUrl = await FetchCityImg(cityName.toLowerCase());
       const daily = forecastRes.list.filter((_, i) => i % 8 === 0); // Set 5 entries (one per day)..
-      
+
       setWeather(weatherRes);
 
       fetchExtraDetails(weatherRes.coord.lat, weatherRes.coord.lon);
@@ -93,44 +101,76 @@ function App() {
           cityImgUrl: cityImgUrl,
           timestamp: Date.now(),
         },
-
       }));
 
       setLoading(false);
-
     } catch {
       setLoading(false);
       console.warn("City not found or network error.");
-    };
-
+      setMessage("City not found or network error.");
+    }
   };
 
   // Fetch weather by geolocation.
   const fetchGeoWeather = () => {
     setLoading(true);
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const { latitude, longitude } = position.coords;
-      
-      try {
-        const weatherRes = await FetchWeatherData(city, unit, latitude, longitude);
-        const cityImgUrl = await FetchCityImg(weatherRes?.name);
-        const forecastRes = await FetchForecastData(weatherRes?.name, unit, latitude, longitude);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
 
-        setCity(weatherRes?.name);
-        setWeather(weatherRes);
-        setCityImg(cityImgUrl);
-        
-        const daily = forecastRes.list.filter((_, i) => i % 8 === 0); // Set 5 entries (one per day)..
-        setForecast(daily);
-        fetchExtraDetails(latitude, longitude);
+        try {
+          const weatherRes = await FetchWeatherData(
+            city,
+            unit,
+            latitude,
+            longitude
+          );
+          const cityImgUrl = await FetchCityImg(weatherRes?.name);
+          const forecastRes = await FetchForecastData(
+            weatherRes?.name,
+            unit,
+            latitude,
+            longitude
+          );
+
+          setCity(weatherRes?.name);
+          setWeather(weatherRes);
+          setCityImg(cityImgUrl);
+
+          const daily = forecastRes.list.filter((_, i) => i % 8 === 0); // Set 5 entries (one per day)..
+          setForecast(daily);
+          fetchExtraDetails(latitude, longitude);
+          setLoading(false);
+        } catch (error) {
+          setLoading(false);
+          console.warn("City not found or network error:", error);
+        } finally {
+          setLoading(false);
+        }
+      },
+      // on error callback
+      (error) => {
         setLoading(false);
-
-      } catch {
-        setLoading(false);
-        console.warn("City not found or network error.");
-      };
-
-    });
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setMessage(
+              "User denied geolocation. Falling back to default city."
+            );
+            // Fallback:default city
+            fetchWeather("Kottayam");
+            setCity("Kottayam");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setMessage("Location unavailable.");
+            break;
+          case error.TIMEOUT:
+            setMessage("Geolocation request timed out.");
+            break;
+          default:
+            setMessage("Unknown geolocation error.", error);
+        }
+      }
+    );
   };
 
   // Clean expired data.
@@ -152,19 +192,32 @@ function App() {
   }, []);
 
   return (
-
-    <section className=" min-h-screen w-full content-center p-2 bg-zinc-300 dark:bg-zinc-800 font-poppins overflow-x-hidden overflow-y-auto scroll-smooth">
-
+    <section className="relative min-h-screen w-full content-center p-2 bg-zinc-300 dark:bg-zinc-800 font-poppins overflow-x-hidden overflow-y-auto scroll-smooth">
       <div className=" max-w-[1160px] w-full h-fit relative left-1/2 -translate-x-1/2 rounded-3xl0 flex flex-col sm:flex-row bg-white0 dark:bg-zinc-9000 transition duration-200">
+        <PrimarySection
+          city={city}
+          setCity={setCity}
+          fetchWeather={fetchWeather}
+          weather={weather}
+          tempSymbol={tempSymbol}
+          cityImg={cityImg}
+          unit={unit}
+          setUnit={setUnit}
+          fetchGeoWeather={fetchGeoWeather}
+          loading={loading}
+        />
 
-        <PrimarySection city={city} setCity={setCity} fetchWeather={fetchWeather} weather={weather} tempSymbol={tempSymbol} cityImg={cityImg} unit={unit} setUnit={setUnit} fetchGeoWeather={fetchGeoWeather} loading={loading} />
-
-        <SecondarySection weather={weather} airQuality={airQuality} forecast={forecast} unit={unit} setUnit={setUnit} tempSymbol={tempSymbol} />
-
+        <SecondarySection
+          weather={weather}
+          airQuality={airQuality}
+          forecast={forecast}
+          unit={unit}
+          setUnit={setUnit}
+          tempSymbol={tempSymbol}
+        />
       </div>
-
+      {message && <PopupMsg message={message} setMessage={setMessage} />}
     </section>
-
   );
 }
 
