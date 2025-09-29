@@ -113,7 +113,7 @@ const SearchBox = ({
                 <button
                   disabled={loading}
                   onClick={() => fetchWeather(city)}
-                  className="bg-zinc-100 dark:bg-zinc-900 rounded-full p-0.5 transition hover:text-blue-500 active:text-blue-500 cursor-pointer "
+                  className="bg-zinc-100 dark:bg-zinc-900 rounded-full p-1.5 textHover"
                 >
                   <Icons name={loading ? "loading" : "search"} />
                 </button>
